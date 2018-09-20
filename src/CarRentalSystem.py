@@ -15,8 +15,22 @@ class CarRentalSystem:
     Query Processing Services
     '''
     def car_search(self, name=None, model=None):
-
-        return []
+        new_cars = []
+        for car in self._cars:
+            if name == None:
+                if model in car._model:
+                   new_cars.append(car) 
+            elif model == None:
+                if name in car._name:
+                    new_cars.append(car)
+            elif model != None and name != None: 
+                if name in car._name:
+                    if model in car._model:
+                       new_cars.append(car) 
+            else: 
+                new_cars.append(car)
+            
+        return new_cars
 
 
     def get_user_by_id(self, user_id):

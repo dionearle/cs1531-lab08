@@ -2,7 +2,17 @@
 {% block body %}
 
 <h1>All Bookings</h1>
-
+    
+    {% if admin == True %}
+        {% for booking in all_bookings %}
+            <h3>{{booking}}</h3>
+        {% endfor %}
+    {% else %}
+        {% for booking in car._bookings %}
+            <h3>{{booking}}</h3>
+        {% endfor %}
+        
+    {% endif %}
 
 {% endblock %}
 

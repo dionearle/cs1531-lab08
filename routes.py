@@ -18,10 +18,17 @@ def login():
     Task 1: complete this function
     """
     if request.method == 'POST':
-
-        # Next helps with redirecting the user to their previous page
-        redir = request.args.get('next')
-        return redirect(redir or url_for('home'))
+        
+        username = request.form["username"]
+        password = request.form["password"]
+        
+        check_user = system.login_customer(username, password)
+        if (check_user):
+             return redirect(url_for('cars'))
+        else:
+            # Next helps with redirecting the user to their previous page
+            redir = request.args.get('next')
+            return redirect(redir or url_for('home'))
     
     return render_template('login.html')
 
@@ -33,9 +40,16 @@ def login_admin():
     '''
     TASK 4.1 complete this function
     '''
-
-    redir = request.args.get('next')
-    return redirect(redir or url_for('home'))
+    username = request.form["username"]
+    password = request.form["password"]
+        
+    check_user = system.login_admin(username, password)
+    if (check_user):
+         return redirect(url_for('cars'))
+    else:
+        # Next helps with redirecting the user to their previous page
+        redir = request.args.get('next')
+        return redirect(redir or url_for('home'))
 
 
 
@@ -60,15 +74,22 @@ def page_not_found(e=None):
 '''
     Search for Cars
 '''
-@app.route('/cars')
+@app.route('/cars', methods=['POST', 'GET'])
 @login_required
 def cars():
     """
     Task 2: At the moment this endpoint does not do anything if a search
     is sent. It should filter the cars depending on the search criteria
     """
-
     cars = system.cars
+    
+    if request.method == 'POST':
+    
+        make = request.form["make"]
+        model = request.form["model"]
+        new_cars = system.car_search(make, model)
+        return render_template('cars.html', cars = new_cars)
+    
     return render_template('cars.html', cars = cars)
 
 
@@ -136,7 +157,14 @@ def car_bookings(rego):
     Task 3: This should render a new template that shows a list of all
     the bookings associated with the car represented by 'rego'
     """
-    return render_template('bookings.html')
+    
+    cars = system.cars
+    for car in cars:
+        if rego == car._rego:
+            curr_car = car
+    
+    
+    return render_template('bookings.html', car = curr_car, admin = False)
 
 
 '''
@@ -150,7 +178,13 @@ def all_bookings():
     Task 4.2: This should render a list of all current bookings
     on the system
     '''
-    return '<h1> Needs to be implemented </h1>'
+    list_bookings = []
+    cars = system.cars
+    for car in cars:
+        for booking in car._bookings:
+            list_bookings.append(booking)
+            
+    return render_template('bookings.html', admin = True, all_bookings = list_bookings) 
 
 
 '''
@@ -168,5 +202,17 @@ def add_car():
     
     Provide meaningful message upon success
     '''
+    factory = CarFactory()
+    if request.method == 'POST':
+        name = request.form['name']
+        model = request.form['model']
+        rego = request.form['rego']
+        car_type = request.form['car-type']
+        
+        new_car = factory.make_car(name, model, rego, car_type)
+        system.add_car(new_car)
+        
+        return render_template('car_register_form.html', success = True)
+    
 
     return render_template('car_register_form.html')
