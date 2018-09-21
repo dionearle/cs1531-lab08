@@ -31,17 +31,36 @@
 
     <!-- Submit Buttons -->
     {% if confirmation %}
+    
+    {% if error != fee %}
+        <h2>These are not valid dates to book, please try again!</h2>
+        <button name="cancel"   type="submit">Cancel</button>
       <div>
+    {% else %}
         Total fee: ${{fee}}
       </div>
       <button name="confirm"  type="submit">Confirm</button>
       <button name="cancel"   type="submit">Cancel</button>
-
+    {% endif %}
     {% else %}
       <button name="check"    type="submit">Check Booking</button>
+      {% if wrong_start == True %}
+        <h2>Please enter a start date</h2>
+      {% endif %}
+      
+      {% if wrong_end == True %}
+        <h2>Please enter an end date</h2>
+      {% endif %}
+      
+      {% if wrong_slocation == True %}
+        <h2>Please enter a start location</h2>
+      {% endif %}
+      
+      {% if wrong_elocation == True %}
+        <h2>Please enter an end location</h2>
+      {% endif %}
 
     {% endif %}
-
   </form>
 </div>
 {% endblock %}

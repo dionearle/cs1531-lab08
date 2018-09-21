@@ -18,10 +18,10 @@ def login():
     Task 1: complete this function
     """
     if request.method == 'POST':
-        
+
         username = request.form["username"]
         password = request.form["password"]
-        
+
         check_user = system.login_customer(username, password)
         if (check_user):
              return redirect(url_for('cars'))
@@ -29,7 +29,7 @@ def login():
             # Next helps with redirecting the user to their previous page
             redir = request.args.get('next')
             return redirect(redir or url_for('home'))
-    
+
     return render_template('login.html')
 
 
@@ -42,7 +42,7 @@ def login_admin():
     '''
     username = request.form["username"]
     password = request.form["password"]
-        
+
     check_user = system.login_admin(username, password)
     if (check_user):
          return redirect(url_for('cars'))
@@ -82,14 +82,14 @@ def cars():
     is sent. It should filter the cars depending on the search criteria
     """
     cars = system.cars
-    
+
     if request.method == 'POST':
-    
+
         make = request.form["make"]
         model = request.form["model"]
         new_cars = system.car_search(make, model)
         return render_template('cars.html', cars = new_cars)
-    
+
     return render_template('cars.html', cars = cars)
 
 
@@ -119,29 +119,38 @@ def book(rego):
 
     if not car:
         abort(404)
-    
+
     if request.method == 'POST':
         date_format = "%Y-%m-%d"
+        if request.form['start_date'] == '':
+            return render_template('booking_form.html', car=car, wrong_start = True)
+        if request.form['end_date'] == '':
+            return render_template('booking_form.html', car=car, wrong_end = True)
         start_date  = datetime.strptime(request.form['start_date'], date_format)
         end_date    = datetime.strptime(request.form['end_date'],   date_format)
+        
+        if request.form['start'] == '':
+                return render_template('booking_form.html', car=car, wrong_slocation = True)
+        if request.form['end'] == '':
+                return render_template('booking_form.html', car=car, wrong_elocation = True)
 
         num_days = (end_date - start_date).days + 1
 
         if 'check' in request.form:
             fee = car.get_fee(num_days)
-            
+            error = system.check_fee(fee)
             return render_template(
                 'booking_form.html',
                 confirmation=True,
                 form=request.form,
                 car=car,
-                fee=fee
+                fee=fee,
+                error=error
             )
 
         elif 'confirm' in request.form:
             location = Location(request.form['start'], request.form['end'])
-            booking  = system.make_booking(current_user, num_days, car, location)
-    
+            booking  = system.make_booking(current_user, num_days, start_date, end_date, car, location)
             return render_template('booking_confirm.html', booking=booking)
 
     return render_template('booking_form.html', car=car)
@@ -157,13 +166,13 @@ def car_bookings(rego):
     Task 3: This should render a new template that shows a list of all
     the bookings associated with the car represented by 'rego'
     """
-    
+
     cars = system.cars
     for car in cars:
         if rego == car._rego:
             curr_car = car
-    
-    
+
+
     return render_template('bookings.html', car = curr_car, admin = False)
 
 
@@ -183,8 +192,8 @@ def all_bookings():
     for car in cars:
         for booking in car._bookings:
             list_bookings.append(booking)
-            
-    return render_template('bookings.html', admin = True, all_bookings = list_bookings) 
+
+    return render_template('bookings.html', admin = True, all_bookings = list_bookings)
 
 
 '''
@@ -199,7 +208,7 @@ def add_car():
     Task 4.3: This should allow the admin to register
     new cars to the system, using the method provided
     in the CarFactory class.
-    
+
     Provide meaningful message upon success
     '''
     factory = CarFactory()
@@ -208,11 +217,11 @@ def add_car():
         model = request.form['model']
         rego = request.form['rego']
         car_type = request.form['car-type']
-        
+
         new_car = factory.make_car(name, model, rego, car_type)
         system.add_car(new_car)
-        
+
         return render_template('car_register_form.html', success = True)
-    
+
 
     return render_template('car_register_form.html')

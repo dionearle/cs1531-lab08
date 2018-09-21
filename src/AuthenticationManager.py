@@ -55,3 +55,13 @@ class AuthenticationManager():
     # Redirect user to default page
     def _to_default_page(self):
         return redirect(url_for(self._default_page))
+        
+
+class DummyAuthenticationManager(AuthenticationManager):
+    def __init__(self):
+        super().__init__(None)
+        
+    def login(self, user, username, password):
+        if user.username == username and user.validate_password(password):
+            return user
+        return None
